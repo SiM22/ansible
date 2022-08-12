@@ -14,26 +14,17 @@ defaults:
 
 jobs:
 
-  lint:
-    name: Lint
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v2
-        with:
-          path: 'ansible-paperless-ngx'
+      # Important: This sets up your GITHUB_WORKSPACE environment variable
+      - uses: actions/checkout@v2
 
-      - name: Set up Python 3.
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+      - name: Run ansible-lint
+        # replace `main` with any valid ref, or tags like `v6`
+        uses: ansible-community/ansible-lint-action@main
 
-      - name: Install test dependencies.
-        run: pip3 install ansible-lint
-
-      - name: Lint code.
-        run: |
-          ansible-lint .
   molecule:
     name: Molecule
     runs-on: ubuntu-latest
