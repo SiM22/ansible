@@ -47,7 +47,9 @@
 # https://github.com/pypa/virtualenv/issues/1873
 - name: install python virtualenv
   ansible.builtin.pip:
-    name: virtualenv
+    name:
+      - virtualenv
+      - jmespath
     extra_args: --upgrade
 
 - name: install ocr languages
@@ -111,12 +113,6 @@
     shell: /usr/sbin/nologin
     # GNUPG_HOME required due to paperless db.py
     create_home: true
-
-- name: Install jmespath which is required for some json queries
-  ansible.builtin.pip:
-    name:
-      - jmespath
-    executable: "{{ paperlessng_virtualenv }}/bin/pip3"
 
 - name: Get latest version
   block:
