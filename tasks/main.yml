@@ -51,11 +51,11 @@
       - virtualenv
     extra_args: --upgrade
 
-# - name: install jmespath
-#   ansible.builtin.pip:
-#     name:
-#       - jmespath
-#     extra_args: --upgrade
+- name: install jmespath
+  ansible.builtin.pip:
+    name:
+      - jmespath
+    extra_args: --upgrade
 
 - name: install ocr languages
   ansible.builtin.apt:
