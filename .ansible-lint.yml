@@ -1,0 +1,6 @@
+skip_list:
+  - 'yaml'
+  - 'no-handler'
+
+warn_list:  # or 'skip_list' to silence them completely
+  - meta-no-tags  # Tags must contain lowercase letters and digits only.
