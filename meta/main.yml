@@ -1,6 +1,5 @@
 ---
-dependencies:
-  - community.general
+dependencies: []
 galaxy_info:
   author: C0nsultant
   description: Bare-metal deployment of paperless-ngx DMS
