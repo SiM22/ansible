@@ -112,6 +112,12 @@
     # GNUPG_HOME required due to paperless db.py
     create_home: true
 
+  - name: Install jmespath which is required for some json queries
+    ansible.builtin.pip:
+      name:
+        - jmespath
+      executable: "{{ paperlessng_virtualenv }}/bin/pip3"
+
 - name: Get latest version
   block:
     - name: get latest release version
@@ -126,13 +132,6 @@
 
 - name: Run checks on current version
   block:
-
-    - name: Install multi python packages with version specifiers
-      ansible.builtin.pip:
-        name:
-          - jmespath
-        executable: "{{ paperlessng_virtualenv }}/bin/pip3"
-
     - name: check if version can be found on github
       ansible.builtin.uri:
         url: https://api.github.com/repos/paperless-ngx/paperless-ngx/commits/{{ paperlessng_version }}
