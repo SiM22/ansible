@@ -49,7 +49,6 @@
   ansible.builtin.pip:
     name:
       - virtualenv
-      - jmespath
     extra_args: --upgrade
 
 - name: install ocr languages
