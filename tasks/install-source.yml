@@ -17,7 +17,8 @@
     - "{{ tempdir.path }}/paperless-ngx"
     - "{{ tempdir.path }}/paperless-ngx/scripts"
 
-- block:
+- name: Set up paperless-ngx
+  block:
     - name: create temporary git directory
       ansible.builtin.tempfile:
         state: directory
@@ -36,6 +37,7 @@
         cmd: "{{ item }}"
       args:
         chdir: "{{ gitdir.path }}/src-ui"
+      changed_when: false
       failed_when: false
       with_items:
         - npm install -g @angular/cli
@@ -47,6 +49,7 @@
         src: "{{ gitdir.path }}/{{ item.src }}"
         remote_src: true
         dest: "{{ tempdir.path }}/paperless-ngx/{{ item.dest | default('') }}"
+        mode: "0750"
       with_items:
         - src: CONTRIBUTING.md
         - src: LICENSE
@@ -71,6 +74,7 @@
         src: "{{ item.path }}"
         remote_src: true
         dest: "{{ tempdir.path }}/paperless-ngx/scripts/"
+        mode: "0750"
       with_items:
         - "{{ glob.files }}"
 
@@ -79,29 +83,35 @@
         cmd: cp -r src/ {{ tempdir.path }}/paperless-ngx/src
       args:
         chdir: "{{ gitdir.path }}"
+      changed_when: false
 
     - name: create paperlessng venv
       ansible.builtin.command:
         cmd: python3 -m virtualenv {{ gitdir.path }}/.venv/ -p /usr/bin/python3
+      changed_when: false
 
     - name: install paperlessng requirements
       ansible.builtin.command:
         cmd: "{{ gitdir.path }}/.venv/bin/python3 -m pip install -r {{ gitdir.path }}/requirements.txt"
+      changed_when: false
 
     - name: compile messages
       ansible.builtin.command: "{{ gitdir.path }}/.venv/bin/python3 manage.py compilemessages"
       args:
         chdir: "{{ tempdir.path }}/paperless-ngx/src/"
+      changed_when: false
 
     - name: collect static files
       ansible.builtin.command: "{{ gitdir.path }}/.venv/bin/python3 manage.py collectstatic --no-input"
       args:
         chdir: "{{ tempdir.path }}/paperless-ngx/src/"
+      changed_when: false
 
     - name: remove pycache directories
       ansible.builtin.shell: find . -name __pycache__ | xargs rm -r
       args:
         chdir: "{{ tempdir.path }}"
+      changed_when: false
 
     - name: remove temporary git directory
       ansible.builtin.file:

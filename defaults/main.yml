@@ -27,7 +27,7 @@ paperlessng_filename_format:
 paperlessng_logging_dir: "{{ paperlessng_data_dir }}/log"
 paperlessng_virtualenv: "{{ paperlessng_directory }}/.venv"
 
-#NFS
+# NFS
 paperlessng_consumption_dir_nfs_enabled: false
 paperlessng_consumption_dir_nfs:
 paperlessng_consumption_dir_mountpoint:
