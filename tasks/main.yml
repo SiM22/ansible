@@ -51,11 +51,11 @@
       - virtualenv
     extra_args: --upgrade
 
-- name: install jmespath
-  ansible.builtin.pip:
-    name:
-      - jmespath
-    extra_args: --upgrade
+# - name: install jmespath
+#   ansible.builtin.pip:
+#     name:
+#       - jmespath
+#     extra_args: --upgrade
 
 - name: install ocr languages
   ansible.builtin.apt:
@@ -141,7 +141,7 @@
       register: commit
     - name: get commit version for your configuration
       ansible.builtin.set_fact:
-        paperlessng_commit: "{{ commit.json | json_query('sha') }}"
+        paperlessng_commit: "{{ commit.json | community.general.json_query('sha') }}"
       when: commit.status == 200
     - name: get commit for target commit-or-ref check
       ansible.builtin.fail:
