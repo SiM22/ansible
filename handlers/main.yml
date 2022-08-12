@@ -1,6 +1,0 @@
-...
-  # handlers:
-  #   - name: Restart bob
-  #     service:
-  #       name: bob
-  #       state: restarted
