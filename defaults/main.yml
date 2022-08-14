@@ -61,6 +61,10 @@ paperlessng_ocr_user_args:
 paperlessng_use_jbig2enc: true
 paperlessng_big2enc_lossy: false
 
+# jbig2encode settings
+jbig2enc_version: 0.29
+jbig2enc_tmp_dir: "/opt/"
+
 # Tika settings
 paperlessng_tika_enabled: false
 paperlessng_tika_endpoint: http://localhost:9998

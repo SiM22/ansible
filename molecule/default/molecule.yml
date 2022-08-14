@@ -18,8 +18,8 @@ platforms:
   #   the default redis configuration expects IPv6 which is not enabled in docker by default
   #   the default Python environment is configured for ASCII instead of UTF-8
   # ubuntu 16.04 xenial only has Python 3.5 which is EOL and breaks multiple dependencies
-  - name: debian_buster
-    image: jrei/systemd-debian:10
+  - name: ubuntu_jazzy
+    image: jrei/systemd-ubuntu:22.04
     privileged: true
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro

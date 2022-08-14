@@ -7,7 +7,7 @@
 - name: Update all packages to the latest version
   ansible.builtin.apt:
     upgrade: true
-    state: latest # noqa package-latest
+    state: latest
 
 - name: install base dependencies
   ansible.builtin.apt:
@@ -42,56 +42,20 @@
       - python3-wheel
       - python3-venv
       - git
-      - python3-jmespath
 
 # upstream virtualenv in Ubuntu 20.04 is broken
 # https://github.com/pypa/virtualenv/issues/1873
 - name: install python virtualenv
   ansible.builtin.pip:
-    name:
-      - virtualenv
+    name: virtualenv
     extra_args: --upgrade
-
-# - name: install jmespath
-#   ansible.builtin.pip:
-#     name:
-#       - jmespath
-#     extra_args: --upgrade
 
 - name: install ocr languages
   ansible.builtin.apt:
     pkg: "{{ paperlessng_ocr_languages | map('regex_replace', '^(.*)$', 'tesseract-ocr-\\1') | map('replace', '_', '-') | list }}"
 
-- name: set up notesalexp repository key (for jbig2enc)
-  ansible.builtin.apt_key:
-    url: https://notesalexp.org/debian/alexp_key.asc
-    state: present
-  when: paperlessng_use_jbig2enc
-
-- name: set up notesalexp repository (for jbig2enc)
-  ansible.builtin.apt_repository:
-    repo: deb https://notesalexp.org/debian/{{ ansible_distribution_release }}/ {{ ansible_distribution_release }} main
-    state: present
-  when: paperlessng_use_jbig2enc
-
-- name: set up notesalexp repository pinning
-  ansible.builtin.copy:
-    content: |
-      Package: *
-      Pin: release o=notesalexp.org
-      Pin-Priority: 1
-
-      Package: jbig2enc
-      Pin: release o=notesalexp.org
-      Pin-Priority: 500
-    dest: /etc/apt/preferences.d/notesalexp
-    mode: "0644"
-  when: paperlessng_use_jbig2enc
-
-- name: install jbig2enc
-  ansible.builtin.apt:
-    pkg: jbig2enc
-    update_cache: true
+- name: install jbig2encode from source
+  include_tasks: install-jbig2enc.yml
   when: paperlessng_use_jbig2enc
 
 - name: install redis
@@ -120,7 +84,7 @@
     # GNUPG_HOME required due to paperless db.py
     create_home: true
 
-- name: Get latest version
+- name: Prep the release
   block:
     - name: get latest release version
       ansible.builtin.uri:
@@ -132,7 +96,7 @@
         paperlessng_version: "{{ latest_release.json['tag_name'] }}"
   when: paperlessng_version == "latest"
 
-- name: Run checks on current version
+- name: Check the version
   block:
     - name: check if version can be found on github
       ansible.builtin.uri:
@@ -142,7 +106,7 @@
       register: commit
     - name: get commit version for your configuration
       ansible.builtin.set_fact:
-        paperlessng_commit: "{{ commit.json | community.general.json_query('sha') }}"
+        paperlessng_commit: "{{ commit.json | json_query('sha') }}"
       when: commit.status == 200
     - name: get commit for target commit-or-ref check
       ansible.builtin.fail:
@@ -175,14 +139,13 @@
     reconfigure_only: "{{ paperlessng_current_commit.stdout == paperlessng_commit | string }}"
   when: not fresh_installation
 
-- name: Backup steps
+- name: Backup
   block:
     - name: backup current paperless-ngx installation
       ansible.builtin.copy:
         src: "{{ paperlessng_directory }}"
         remote_src: true
         dest: "{{ paperlessng_directory }}-{{ ansible_date_time.iso8601 }}/"
-        mode: "0755"
     - name: remove current paperless sources
       ansible.builtin.file:
         path: "{{ paperlessng_directory }}/{{ item }}"
@@ -195,7 +158,7 @@
         - static
   when: update_installation
 
-- name: Create directories
+- name: Create dirs required
   block:
     - name: create paperless-ngx directory and set permissions
       ansible.builtin.file:
@@ -224,7 +187,6 @@
       ansible.builtin.command:
         cmd: "{{ item }}"
         warn: false
-      changed_when: false
       with_items:
         - chown -R {{ paperlessng_system_user }}:{{ paperlessng_system_group }} {{ tempdir.path }}
         - find {{ tempdir.path }} -type d -exec chmod 0750 {} ;
@@ -233,7 +195,6 @@
     - name: move paperless-ngx
       ansible.builtin.command:
         cmd: cp -a {{ tempdir.path }}/paperless-ngx/. {{ paperlessng_directory }}
-      changed_when: false
 
     - name: store commit hash of installed version
       ansible.builtin.copy:
@@ -423,11 +384,12 @@
 - name: install latest pip
   become: true
   ansible.builtin.pip:
-    name: pip==22.2.2
+    name: pip
     executable: "{{ paperlessng_virtualenv }}/bin/pip3"
+    state: latest
   when: not reconfigure_only
 
-- name: Configure paperless
+- name: Install needed requirements
   block:
     - name: install paperlessng requirements
       become: true
@@ -461,7 +423,7 @@
     owner: "{{ paperlessng_system_user }}"
     group: "{{ paperlessng_system_group }}"
     mode: g-w,o-rwx
-  when: venv.changed or not reconfigure_only # noqa no-handler
+  when: venv.changed or not reconfigure_only
 
 - name: configure ghostscript for PDF
   ansible.builtin.lineinfile:
@@ -477,35 +439,26 @@
     line: bind = '{{ paperlessng_listen_address }}:{{ paperlessng_listen_port }}'
 
 - name: configure systemd services
-  ini_file:
+  community.general.ini_file:
     path: "{{ paperlessng_directory }}/scripts/{{ item[0] }}"
-    section: "Service"
+    section: Service
     option: "{{ item[1].option  }}"
     value: "{{ item[1].value }}"
-    mode: "0640"
   with_nested:
-    - [
-      paperless-consumer.service,
-      paperless-scheduler.service,
-      paperless-webserver.service,
-    ]
-    - [
-        # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
-      { option: "User", value: "{{ paperlessng_system_user }}" },
-      { option: "Group", value: "{{ paperlessng_system_group }}" },
-      { option: "WorkingDirectory", value: "{{ paperlessng_directory }}/src" },
-      { option: "ProtectSystem", value: "full" },
-      { option: "NoNewPrivileges", value: "true" },
-      { option: "PrivateUsers", value: "true" },
-      { option: "PrivateDevices", value: "true" },
-    ]
-
+    - [paperless-consumer.service, paperless-scheduler.service, paperless-webserver.service]
+    # https://www.freedesktop.org/software/systemd/man/systemd.exec.html
+    -   - { option: User, value: "{{ paperlessng_system_user }}" }
+        - { option: Group, value: "{{ paperlessng_system_group }}" }
+        - { option: WorkingDirectory, value: "{{ paperlessng_directory }}/src" }
+        - { option: ProtectSystem, value: full }
+        - { option: NoNewPrivileges, value: "true" }
+        - { option: PrivateUsers, value: "true" }
+        - { option: PrivateDevices, value: "true" }
 - name: configure paperless-consumer service
   community.general.ini_file:
     path: "{{ paperlessng_directory }}/scripts/paperless-consumer.service"
     section: Service
     option: ExecStart
-    mode: "0640"
     value: "{{ paperlessng_virtualenv }}/bin/python3 manage.py document_consumer"
 
 - name: remove redis from paperless-consumer service if external
@@ -515,7 +468,6 @@
     option: Requires
     value: redis.service
     state: absent
-    mode: "0640"
   when: paperlessng_redis_host != 'localhost' or paperlessng_redis_host != '127.0.0.1'
 
 - name: configure paperless-scheduler service
@@ -523,7 +475,6 @@
     path: "{{ paperlessng_directory }}/scripts/paperless-scheduler.service"
     section: Service
     option: ExecStart
-    mode: "0640"
     value: "{{ paperlessng_virtualenv }}/bin/python3 manage.py qcluster"
 
 - name: remove redis from paperless-scheduler service if external
@@ -533,7 +484,6 @@
     option: Requires
     value: redis.service
     state: absent
-    mode: "0640"
   when: paperlessng_redis_host != 'localhost' or paperlessng_redis_host != '127.0.0.1'
 
 - name: configure paperless-webserver service
@@ -541,7 +491,6 @@
     path: "{{ paperlessng_directory }}/scripts/paperless-webserver.service"
     section: Service
     option: ExecStart
-    mode: "0640"
     value: "{{ paperlessng_virtualenv }}/bin/gunicorn -c {{ paperlessng_directory }}/gunicorn.conf.py paperless.asgi:application"
 
 - name: remove redis from paperless-webserver service if external
@@ -551,7 +500,6 @@
     option: Requires
     value: redis.service
     state: absent
-    mode: "0640"
   when: paperlessng_redis_host != 'localhost' or paperlessng_redis_host != '127.0.0.1'
 
 - name: NFS utility present for redhat-like
@@ -605,14 +553,13 @@
     src: "{{ paperlessng_directory }}/scripts/{{ item }}"
     remote_src: true
     dest: /etc/systemd/system/{{ item }}
-    mode: "0644"
   with_items:
     - paperless-consumer.service
     - paperless-scheduler.service
     - paperless-webserver.service
   register: paperless_services
 
-- name: reload systemd daemon # noqa no-handler
+- name: reload systemd daemon
   ansible.builtin.systemd:
     name: "{{ item }}"
     state: restarted

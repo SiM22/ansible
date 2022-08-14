@@ -3,9 +3,8 @@
   hosts: all
   tasks:
     - name: set current github commit as version when available
-      ansible.builtin.set_fact:
-        paperlessng_version: "{{ lookup('env', 'TARGET_GITHUB_SHA')
-          | default('master', True) }}"
+      set_fact:
+        paperlessng_version: "{{ lookup('env', 'TARGET_GITHUB_SHA') | default('master', True) }}"
     - name: update to newest paperless-ngx release
-      ansible.builtin.include_role:
-        name: ansible
+      include_role:
+        name: ansible-paperless-ngx
