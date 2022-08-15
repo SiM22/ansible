@@ -431,7 +431,7 @@
 - name: Install needed requirements
   block:
     - name: Replace pikepdf version if using ngx version lower than v1.8.0
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ paperlessng_directory }}/requirements.txt"
         regexp: '^pikepdf(.*)'
         line: 'pikepdf==5.4.0'
