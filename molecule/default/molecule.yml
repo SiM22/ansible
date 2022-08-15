@@ -18,17 +18,17 @@ platforms:
   #   the default redis configuration expects IPv6 which is not enabled in docker by default
   #   the default Python environment is configured for ASCII instead of UTF-8
   # ubuntu 16.04 xenial only has Python 3.5 which is EOL and breaks multiple dependencies
-  - name: ubuntu_jammy
-    image: jrei/systemd-ubuntu:22.04
-    privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    tmpfs:
-      - /tmp
-      - /run
-      - /run/lock
-    override_command: false
-# debian 9 stretch only has Python 3.5 which is EOL and breaks multiple dependencies
+#   - name: ubuntu_jammy
+#     image: jrei/systemd-ubuntu:22.04
+#     privileged: true
+#     volumes:
+#       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+#     tmpfs:
+#       - /tmp
+#       - /run
+#       - /run/lock
+#     override_command: false
+# # debian 9 stretch only has Python 3.5 which is EOL and breaks multiple dependencies
 provisioner:
   name: ansible
 verifier:
