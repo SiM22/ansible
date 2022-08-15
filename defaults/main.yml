@@ -35,7 +35,7 @@ paperlessng_consumption_dir_mountpoint:
 paperlessng_consumption_dir_permission:
 paperlessng_consumption_dir_myopts:
 # Hosting & Security
-paperlessng_url: http://change-to-ip-of-host:8000
+paperlessng_url: http://127.0.0.1:8000
 paperlessng_secret_key: PLEASECHANGETHISFORTHELOVEOFGOD
 paperlessng_allowed_hosts: "*"
 paperlessng_cors_allowed_hosts: http://localhost:8000
@@ -96,7 +96,7 @@ paperlessng_system_user: paperlessng
 paperlessng_system_group: paperlessng
 
 # Webserver settings
-paperlessng_listen_address: 0.0.0.0
+paperlessng_listen_address: 127.0.0.1
 paperlessng_listen_port: 8000
 
 # Extra
