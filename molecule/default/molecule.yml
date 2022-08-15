@@ -33,3 +33,14 @@ provisioner:
   name: ansible
 verifier:
   name: ansible
+scenario:
+  test_sequence:
+    - create
+    - prepare
+    - syntax
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
