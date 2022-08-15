@@ -16,7 +16,7 @@ paperlessng_db_pass: paperlessng
 paperlessng_db_sslmode: prefer
 
 # Paths and folders
-paperlessng_directory: /opt/paperless-ngx
+paperlessng_directory: "/opt/paperless-ngx/"
 paperlessng_consumption_dir: "{{ paperlessng_directory }}/consumption"
 paperlessng_export_dir: "{{ paperlessng_directory }}/export"
 paperlessng_data_dir: "{{ paperlessng_directory }}/data"
@@ -26,6 +26,7 @@ paperlessng_staticdir: "{{ paperlessng_directory }}/static"
 paperlessng_filename_format:
 paperlessng_logging_dir: "{{ paperlessng_data_dir }}/log"
 paperlessng_virtualenv: "{{ paperlessng_directory }}/.venv"
+paperlessng_tmp_dir: "/opt/"
 
 # NFS
 paperlessng_consumption_dir_nfs_enabled: false

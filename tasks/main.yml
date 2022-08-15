@@ -170,10 +170,9 @@
         mode: "750"
 
     - name: create temporary directory
-      become: true
       ansible.builtin.tempfile:
         state: directory
-        path: "{{ paperlessng_directory }}"
+        path: "{{ paperlessng_tmp_dir }}"
       register: tempdir
 
     - name: install paperless-ngx from source
@@ -183,6 +182,45 @@
     - name: install paperless-ngx from release archive
       include_tasks: install-release.yml
       when: paperlessng_install_method == "precompiledrelease"
+
+    - name: Find all files created
+      ansible.builtin.find:
+        path: "{{ tempdir.path }}"
+        file_type: file
+        recurse: yes
+      register: find_result_files
+
+    # # - name: Print the files found
+    # #   ansible.builtin.debug:
+    # #     msg: '{{ find_result_files.files }}'
+
+    - name: Find all directories created
+      ansible.builtin.find:
+        path: '{{ tempdir.path }}'
+        file_type: directory
+        recurse: yes
+      register: find_result_directories
+
+    # - name: Print the directories found
+    #   ansible.builtin.debug:
+    #     msg: '{{ find_result_directories }}'
+
+    # - name: Change owner and permissions of paperless-ngx files
+    #   ansible.builtin.file:
+    #     path: "{{ item.path }}"
+    #     owner: "{{ paperlessng_system_user }}"
+    #     group: "{{ paperlessng_system_group }}"
+    #     mode: '0640'
+    #     state: file
+    #   with_items: "{{ find_result_files.files }}"
+
+    # - name: Change owner and permissions of paperless-ngx directories
+    #   ansible.builtin.file:
+    #     path: "{{ item.path }}"
+    #     owner: "{{ paperlessng_system_user }}"
+    #     group: "{{ paperlessng_system_group }}"
+    #     mode: '0750'
+    #   with_items: "{{ find_result_directories.files }}"
 
     - name: change owner and permissions of paperless-ngx
       ansible.builtin.command:
@@ -392,6 +430,14 @@
 
 - name: Install needed requirements
   block:
+    - name: Replace pikepdf version if using ngx version lower than v1.8.0
+      lineinfile:
+        path: "{{ paperlessng_directory }}/requirements.txt"
+        regexp: '^pikepdf(.*)'
+        line: 'pikepdf==5.4.0'
+      when: not paperlessng_version == "v1.8.0" or
+            paperlessng_version == "latest"
+
     - name: install paperlessng requirements
       become: true
       ansible.builtin.pip:
