@@ -16,42 +16,26 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
       - uses: actions/checkout@v2
-
       - name: Run ansible-lint
         # replace `main` with any valid ref, or tags like `v6`
         uses: ansible-community/ansible-lint-action@main
 
   molecule:
-    name: Molecule
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: ${{ !contains(github.event_name, 'pull_request') }}
-      matrix:
-        distro:
-          - ubuntu2004
-          - ubuntu2204
-
+      fail-fast: false
+      # matrix:
+      #   scenario:
+      #     - ubuntu-20.04
     steps:
-      - name: Check out the codebase.
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'ansible-paperless-ngx'
-
-      - name: Set up Python 3.
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-
-      - name: Install test dependencies.
-        run: pip3 install ansible molecule[docker] docker
-
-      - name: Run Molecule tests.
-        run: molecule test
+          path: "${{ github.repository }}"
+      - name: Molecule
+        uses: gofrolist/molecule-action@v2
         env:
-          PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
-          MOLECULE_DISTRO: ${{ matrix.distro }}
