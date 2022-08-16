@@ -27,6 +27,8 @@ platforms:
       - /tmp
       - /run
       - /run/lock
+    published_ports:
+      - 8001:8000
     override_command: false
 # debian 9 stretch only has Python 3.5 which is EOL and breaks multiple dependencies
 provisioner:

@@ -36,11 +36,10 @@
       register: post_document
       failed_when: "'OK' not in post_document.content"
 
-
-    - name: Output post register
-      ansible.builtin.debug:
-        var: post_document
-      run_once: true
+    # - name: Output post register
+    #   ansible.builtin.debug:
+    #     var: post_document
+    #   run_once: true
 
     - name: verify uploaded document has been accepted
       ansible.builtin.uri:
@@ -49,12 +48,12 @@
           Authorization: Basic {{ (paperlessng_superuser_name + ":" + paperlessng_superuser_password) | b64encode }}
         return_content: true
       register: logs
-      # failed_when: ('Consuming ' + filename + '.txt') not in logs.content
+      failed_when: ('Consuming ' + filename + '.txt') not in logs.content
 
-    - name: Output logs register
-      ansible.builtin.debug:
-        var: logs
-      run_once: true
+    # - name: Output logs register
+    #   ansible.builtin.debug:
+    #     var: logs
+    #   run_once: true
 
     - name: sleep till consumption finished
       ansible.builtin.pause:
