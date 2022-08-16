@@ -15,16 +15,25 @@ defaults:
 jobs:
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      # Important: This sets up your GITHUB_WORKSPACE environment variable
-      - uses: actions/checkout@v2
-      - name: Run ansible-lint
-        # replace `main` with any valid ref, or tags like `v6`
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: ansible-lint
         uses: ansible-community/ansible-lint-action@main
 
-  molecule:
+  molecule-build:
+    needs:
+      - lint
     runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - image: "systemd-ubuntu"
+            tag: "20.04"
+          - image: "systemd-ubuntu"
+            tag: "22.04"
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -32,3 +41,81 @@ jobs:
           path: "${{ github.repository }}"
       - name: molecule
         uses: robertdebock/molecule-action@4.0.9
+        with:
+          command: check
+          image: ${{ matrix.config.image }}
+          tag: ${{ matrix.config.tag }}
+
+  molecule-converge:
+    needs:
+      - lint
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - image: "systemd-ubuntu"
+            tag: "20.04"
+          - image: "systemd-ubuntu"
+            tag: "22.04"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.9
+        with:
+          command: converge
+          image: ${{ matrix.config.image }}
+          tag: ${{ matrix.config.tag }}
+
+  molecule-test:
+    needs:
+      - molecule-converge
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - image: "systemd-ubuntu"
+            tag: "20.04"
+          - image: "systemd-ubuntu"
+            tag: "22.04"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.9
+        with:
+          command: test
+          options: parallel
+          image: ${{ matrix.config.image }}
+          tag: ${{ matrix.config.tag }}
+
+  molecule-idempotence:
+    needs:
+      - molecule-converge
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - image: "systemd-ubuntu"
+            tag: "20.04"
+          - image: "systemd-ubuntu"
+            tag: "22.04"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        continue-on-error: true
+        uses: robertdebock/molecule-action@4.0.9
+        with:
+          command: idempotence
+          image: ${{ matrix.config.image }}
+          tag: ${{ matrix.config.tag }}
