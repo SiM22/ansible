@@ -36,6 +36,10 @@
       register: post_document
       failed_when: "'OK' not in post_document.content"
 
+    - debug:
+        var: post_document
+      run_once: true
+
     - name: verify uploaded document has been accepted
       ansible.builtin.uri:
         url: http://{{ paperlessng_listen_address }}:{{ paperlessng_listen_port }}/api/logs/paperless/
@@ -44,6 +48,10 @@
         return_content: true
       register: logs
       failed_when: ('Consuming ' + filename + '.txt') not in logs.content
+
+    - debug:
+        var: logs
+      run_once: true
 
     - name: sleep till consumption finished
       ansible.builtin.pause:
