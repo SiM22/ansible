@@ -169,11 +169,18 @@
         group: "{{ paperlessng_system_group }}"
         mode: "750"
 
+    - name: Validar Directorio
+      ansible.builtin.stat:
+        path: "{{ paperlessng_tmp_dir }}"
+      register: tempdir_state
+
     - name: Create temporary directory
       ansible.builtin.tempfile:
         state: directory
         path: "{{ paperlessng_tmp_dir }}"
       register: tempdir
+      when: tempdir_state.stat.exists == false
+
 
     - name: install paperless-ngx from source
       include_tasks: install-source.yml

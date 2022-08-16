@@ -30,9 +30,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "20.04"
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "22.04"
     steps:
       - name: checkout
@@ -43,6 +45,7 @@ jobs:
         uses: robertdebock/molecule-action@4.0.9
         with:
           command: converge
+          namespace: ${{ matrix.config.namespace }}
           image: ${{ matrix.config.image }}
           tag: ${{ matrix.config.tag }}
 
@@ -54,9 +57,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "20.04"
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "22.04"
     steps:
       - name: checkout
@@ -68,6 +73,7 @@ jobs:
         with:
           command: test
           options: parallel
+          namespace: ${{ matrix.config.namespace }}
           image: ${{ matrix.config.image }}
           tag: ${{ matrix.config.tag }}
 
@@ -79,9 +85,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "20.04"
-          - image: "systemd-ubuntu"
+          - namespace: "jrei"
+            image: "systemd-ubuntu"
             tag: "22.04"
     steps:
       - name: checkout
@@ -93,5 +101,6 @@ jobs:
         uses: robertdebock/molecule-action@4.0.9
         with:
           command: idempotence
+          namespace: ${{ matrix.config.namespace }}
           image: ${{ matrix.config.image }}
           tag: ${{ matrix.config.tag }}
