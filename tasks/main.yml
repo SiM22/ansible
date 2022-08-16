@@ -190,37 +190,12 @@
         recurse: yes
       register: find_result_files
 
-    # # - name: Print the files found
-    # #   ansible.builtin.debug:
-    # #     msg: '{{ find_result_files.files }}'
-
     - name: Find all directories created
       ansible.builtin.find:
         path: '{{ tempdir.path }}'
         file_type: directory
         recurse: yes
       register: find_result_directories
-
-    # - name: Print the directories found
-    #   ansible.builtin.debug:
-    #     msg: '{{ find_result_directories }}'
-
-    # - name: Change owner and permissions of paperless-ngx files
-    #   ansible.builtin.file:
-    #     path: "{{ item.path }}"
-    #     owner: "{{ paperlessng_system_user }}"
-    #     group: "{{ paperlessng_system_group }}"
-    #     mode: '0640'
-    #     state: file
-    #   with_items: "{{ find_result_files.files }}"
-
-    # - name: Change owner and permissions of paperless-ngx directories
-    #   ansible.builtin.file:
-    #     path: "{{ item.path }}"
-    #     owner: "{{ paperlessng_system_user }}"
-    #     group: "{{ paperlessng_system_group }}"
-    #     mode: '0750'
-    #   with_items: "{{ find_result_directories.files }}"
 
     - name: change owner and permissions of paperless-ngx
       ansible.builtin.command:
@@ -256,6 +231,7 @@
     owner: "{{ paperlessng_system_user }}"
     group: "{{ paperlessng_system_group }}"
     mode: "750"
+    recurse: yes
   when: item
   with_items:
     - "{{ paperlessng_data_dir }}"
@@ -414,14 +390,12 @@
   register: configuration
 
 - name: create paperlessng venv
-  become: true
   ansible.builtin.command:
     cmd: python3 -m venv {{ paperlessng_virtualenv }}
     creates: "{{ paperlessng_virtualenv }}"
   register: venv
 
 - name: install latest pip
-  become: true
   ansible.builtin.pip:
     name: pip
     executable: "{{ paperlessng_virtualenv }}/bin/pip3"
@@ -439,20 +413,17 @@
             paperlessng_version == "latest"
 
     - name: install paperlessng requirements
-      become: true
       ansible.builtin.pip:
         requirements: "{{ paperlessng_directory }}/requirements.txt"
         executable: "{{ paperlessng_virtualenv }}/bin/pip3"
         extra_args: --upgrade
     - name: migrate database schema
-      become: true
       ansible.builtin.command: "{{ paperlessng_virtualenv }}/bin/python3 {{ paperlessng_directory }}/src/manage.py migrate"
       register: database_schema
       changed_when: '"No migrations to apply." not in database_schema.stdout'
   when: not reconfigure_only
 
 - name: configure paperless superuser
-  become: true
   ansible.builtin.command: "{{ paperlessng_virtualenv }}/bin/python3 {{ paperlessng_directory }}/src/manage.py manage_superuser"
   environment:
     PAPERLESS_ADMIN_USER: "{{ paperlessng_superuser_name }}"

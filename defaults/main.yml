@@ -16,7 +16,7 @@ paperlessng_db_pass: paperlessng
 paperlessng_db_sslmode: prefer
 
 # Paths and folders
-paperlessng_directory: "/opt/paperless-ngx/"
+paperlessng_directory: "/opt/paperless-ngx"
 paperlessng_consumption_dir: "{{ paperlessng_directory }}/consumption"
 paperlessng_export_dir: "{{ paperlessng_directory }}/export"
 paperlessng_data_dir: "{{ paperlessng_directory }}/data"
@@ -35,7 +35,7 @@ paperlessng_consumption_dir_mountpoint:
 paperlessng_consumption_dir_permission:
 paperlessng_consumption_dir_myopts:
 # Hosting & Security
-paperlessng_url: http://127.0.0.1:8000
+paperlessng_url: http://localhost:8000
 paperlessng_secret_key: PLEASECHANGETHISFORTHELOVEOFGOD
 paperlessng_allowed_hosts: "*"
 paperlessng_cors_allowed_hosts: http://localhost:8000
