@@ -35,7 +35,7 @@
       - pngquant
       - zlib1g
       - tesseract-ocr
-      # dev
+      # Dev
       - sudo
       - build-essential
       - python3-setuptools
