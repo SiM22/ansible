@@ -21,16 +21,11 @@ provisioner:
 verifier:
   name: ansible
 scenario:
-  check_sequence:
-    - create
-    - prepare
-    - converge
-    - check
-    - destroy
   converge_sequence:
     - create
     - prepare
     - converge
+    - check
     - destroy
   test_sequence:
     - create

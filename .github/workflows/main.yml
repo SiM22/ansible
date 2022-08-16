@@ -22,30 +22,6 @@ jobs:
       - name: ansible-lint
         uses: ansible-community/ansible-lint-action@main
 
-  molecule-build:
-    needs:
-      - lint
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - image: "systemd-ubuntu"
-            tag: "20.04"
-          - image: "systemd-ubuntu"
-            tag: "22.04"
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          path: "${{ github.repository }}"
-      - name: molecule
-        uses: robertdebock/molecule-action@4.0.9
-        with:
-          command: check
-          image: ${{ matrix.config.image }}
-          tag: ${{ matrix.config.tag }}
-
   molecule-converge:
     needs:
       - lint
