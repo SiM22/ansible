@@ -6,11 +6,15 @@
       ansible.builtin.uri:
         url: https://api.github.com/repos/paperless-ngx/paperless-ngx/releases/latest
         method: GET
+        return_content: yes
+        headers:
+          Content-Type: "application/json"
       register: latest_release
+
     - name: parse latest release version
       ansible.builtin.set_fact:
         paperlessng_version: "{{ latest_release.json['tag_name'] }}"
-        
+
     - name: update to newest paperless-ngx release
       ansible.builtin.include_role:
         name: ansible-paperless-ngx
