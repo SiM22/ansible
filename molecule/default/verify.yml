@@ -36,7 +36,9 @@
       register: post_document
       failed_when: "'OK' not in post_document.content"
 
-    - debug:
+
+    - name: Output post register
+      ansible.builtin.debug:
         var: post_document
       run_once: true
 
@@ -49,7 +51,8 @@
       register: logs
       # failed_when: ('Consuming ' + filename + '.txt') not in logs.content
 
-    - debug:
+    - name: Output logs register
+      ansible.builtin.debug:
         var: logs
       run_once: true
 
